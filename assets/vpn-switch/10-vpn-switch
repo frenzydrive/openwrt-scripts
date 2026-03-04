@@ -1,0 +1,37 @@
+#!/bin/sh
+export PATH="/usr/sbin:/usr/bin:/sbin:/bin"
+
+[ "$BUTTON" = "BTN_0" ] || exit 0
+
+LOCK="/tmp/vpn_switch.lock"
+if [ -e "$LOCK" ]; then
+    logger -t vpn-switch "Ignore: double trigger protection active"
+    exit 0
+fi
+
+touch "$LOCK"
+( sleep 1; rm -f "$LOCK" ) &
+
+case "$ACTION" in
+  pressed)
+    uci set passwall2.@global[0].enabled='1'
+    uci commit passwall2
+
+    nohup sh -c '/usr/share/passwall2/app.sh stop; sleep 1; /usr/share/passwall2/app.sh start' \
+      >/dev/null 2>&1 </dev/null &
+
+    logger -t vpn-switch "VPN ON: Service starting..."
+    echo 1 > /sys/class/leds/red:power/brightness
+    ;;
+  released)
+    uci set passwall2.@global[0].enabled='0'
+    uci commit passwall2
+
+    nohup /usr/share/passwall2/app.sh stop >/dev/null 2>&1 </dev/null &
+
+    logger -t vpn-switch "VPN OFF: Service stopping..."
+    echo 0 > /sys/class/leds/red:power/brightness
+    ;;
+esac
+
+exit 0
