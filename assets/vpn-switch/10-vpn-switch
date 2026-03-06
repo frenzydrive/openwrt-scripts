@@ -1,37 +1,72 @@
 #!/bin/sh
+
 export PATH="/usr/sbin:/usr/bin:/sbin:/bin"
 
 [ "$BUTTON" = "BTN_0" ] || exit 0
 
 LOCK="/tmp/vpn_switch.lock"
+
+RED_LED="/sys/class/leds/red:power"
+WHITE_LED="/sys/class/leds/white:status"
+
+set_vpn_leds_on() {
+    # Красный: heartbeat
+    echo heartbeat > "$RED_LED/trigger" 2>/dev/null
+
+    # Белый: heartbeat inverted
+    echo heartbeat > "$WHITE_LED/trigger" 2>/dev/null
+    echo 1 > "$WHITE_LED/invert" 2>/dev/null
+}
+
+set_vpn_leds_off() {
+    # Красный выключаем
+    echo none > "$RED_LED/trigger" 2>/dev/null
+    echo 0 > "$RED_LED/brightness" 2>/dev/null
+
+    # Белый возвращаем в обычное состояние
+    echo none > "$WHITE_LED/trigger" 2>/dev/null
+    echo 0 > "$WHITE_LED/invert" 2>/dev/null
+    echo 1 > "$WHITE_LED/brightness" 2>/dev/null
+}
+
+# Защита от двойного срабатывания
 if [ -e "$LOCK" ]; then
     logger -t vpn-switch "Ignore: double trigger protection active"
     exit 0
 fi
 
 touch "$LOCK"
-( sleep 1; rm -f "$LOCK" ) &
+(
+    sleep 1
+    rm -f "$LOCK"
+) &
 
 case "$ACTION" in
-  pressed)
-    uci set passwall2.@global[0].enabled='1'
-    uci commit passwall2
+    pressed)
+        logger -t vpn-switch "Switch ON: enabling Passwall2"
 
-    nohup sh -c '/usr/share/passwall2/app.sh stop; sleep 1; /usr/share/passwall2/app.sh start' \
-      >/dev/null 2>&1 </dev/null &
+        uci set passwall2.@global[0].enabled='1'
+        uci commit passwall2
 
-    logger -t vpn-switch "VPN ON: Service starting..."
-    echo 1 > /sys/class/leds/red:power/brightness
-    ;;
-  released)
-    uci set passwall2.@global[0].enabled='0'
-    uci commit passwall2
+        /usr/share/passwall2/app.sh stop >/dev/null 2>&1
+        sleep 1
+        /usr/share/passwall2/app.sh start >/dev/null 2>&1 &
 
-    nohup /usr/share/passwall2/app.sh stop >/dev/null 2>&1 </dev/null &
+        # Включаем LED-индикацию VPN
+        set_vpn_leds_on
+        ;;
 
-    logger -t vpn-switch "VPN OFF: Service stopping..."
-    echo 0 > /sys/class/leds/red:power/brightness
-    ;;
+    released)
+        logger -t vpn-switch "Switch OFF: disabling Passwall2"
+
+        uci set passwall2.@global[0].enabled='0'
+        uci commit passwall2
+
+        /usr/share/passwall2/app.sh stop >/dev/null 2>&1 &
+
+        # Возвращаем обычную LED-индикацию
+        set_vpn_leds_off
+        ;;
 esac
 
 exit 0
