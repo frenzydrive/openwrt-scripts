@@ -51,7 +51,7 @@
 
 ## Поддержка бокового переключателя на роутерах Cudy TR3000
  
-Добавляет поддержку **бокового аппаратного переключателя на роутерах Cudy (например TR3000)**.
+Добавляет поддержку **бокового аппаратного переключателя на роутерах Cudy TR3000**.
 
 Переключатель можно использовать для включения и выключения VPN-маршрутизации через Passwall2.
 
@@ -215,7 +215,7 @@ Automatically installs and configures **PassWall2** for OpenWrt.
 
 ## Cudy Router Hardware Switch Integration
 
-Adds support for the **side hardware switch on Cudy routers (for example TR3000)**.
+Adds support for the **side hardware switch on Cudy TR3000**.
 
 The switch can be used to toggle VPN routing via Passwall2.
 
