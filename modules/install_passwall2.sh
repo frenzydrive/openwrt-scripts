@@ -129,7 +129,7 @@ uci commit network
 echo -e "${YELLOW}** Installation completed **${NC}"
 echo -e "${MAGENTA}Customized for frenzydrive/openwrt-scripts${NC}"
 
-rm install_passwall2.sh
+rm -f /tmp/install_passwall2.sh
 rm passwalls.sh
 
 /sbin/reload_config
