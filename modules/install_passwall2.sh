@@ -28,13 +28,12 @@ SNAP="$(grep -o SNAPSHOT /etc/openwrt_release | sed -n '1p')"
 
 if [ "$SNAP" = "SNAPSHOT" ]; then
     echo -e "${YELLOW}SNAPSHOT version detected!${NC}"
-    rm -f passwalls.sh
-    wget https://raw.githubusercontent.com/ikattz/Passwall/main/passwalls.sh
-    chmod 755 passwalls.sh
-    sh passwalls.sh
+    echo -e "${RED}SNAPSHOT builds are not supported by this installer.${NC}"
+    echo -e "${YELLOW}Please use a stable OpenWrt release version.${NC}"
     exit 1
-else
-    echo -e "${GREEN}Updating packages...${NC}"
+fi
+
+echo -e "${GREEN}Updating packages...${NC}"
 fi
 
 opkg update
