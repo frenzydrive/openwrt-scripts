@@ -152,5 +152,5 @@ apply_post_update_settings || {
     exit 1
 }
 
+rm -f /tmp/update_passwall2.sh
 echo -e "${YELLOW}** PassWall2 update completed successfully **${NC}"
-echo -e "${MAGENTA}Customized for frenzydrive/openwrt-scripts${NC}"
