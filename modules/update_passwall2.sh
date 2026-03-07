@@ -94,7 +94,7 @@ apply_post_update_settings() {
     uci set passwall2.Russia.remarks='Russia'
     uci set passwall2.Russia.domain_list='geosite:category-ru'
     uci set passwall2.Russia.ip_list='geoip:ru'
-    uci set passwall2.myshunt.Russia='_direct'
+    uci set passwall2.rulenode.Russia='_direct'
 
     uci commit passwall2
     uci commit system
