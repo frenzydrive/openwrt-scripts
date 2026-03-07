@@ -45,14 +45,6 @@ Switch position | Action
 ON | Включает Passwall2 и запускает сервис
 OFF | Выключает Passwall2 и останавливает сервис
 
-Скрипт устанавливает hotplug-обработчик:
-
-```
-/etc/hotplug.d/button/10-vpn-switch
-```
-
-Этот обработчик реагирует на изменение состояния аппаратного переключателя и выполняет необходимые действия автоматически.
-
 Также используется светодиод питания роутера как индикатор состояния VPN.
 
 ---
@@ -199,14 +191,6 @@ Switch position | Action
 ---|---
 ON | Enables Passwall2 and starts the service
 OFF | Disables Passwall2 and stops the service
-
-The script installs a hotplug handler:
-
-```
-/etc/hotplug.d/button/10-vpn-switch
-```
-
-This handler reacts to the hardware switch and performs the required actions automatically.
 
 The router power LED is also used as a visual indicator of VPN state.
 
