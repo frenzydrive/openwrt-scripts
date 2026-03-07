@@ -26,6 +26,23 @@
 
 ---
 
+## Настройка Extroot
+
+Автоматически настраивает **Extroot** в OpenWrt для переноса overlay-раздела на внешний USB-накопитель.
+
+Скрипт:
+
+- проверяет текущее состояние Extroot
+- устанавливает недостающие пакеты
+- подготавливает и форматирует внешний накопитель
+- переносит overlay на USB-накопитель
+- настраивает автоматическое монтирование `/overlay`
+- применяет дополнительные параметры для уменьшения износа флешки
+
+Это позволяет расширить доступное пространство для установки пакетов и снизить нагрузку на внутреннюю память роутера.
+
+---
+
 ## Установка плагина PassWall2 
  
 Автоматически устанавливает и настраивает **PassWall2** для OpenWrt.
@@ -170,6 +187,23 @@ Automatically installs:
 - Russian translation for Argon configuration page
 
 This allows quick customization of the OpenWrt web interface.
+
+---
+
+## Extroot Setup
+
+Automatically configures **Extroot** in OpenWrt to move the overlay partition to an external USB storage device.
+
+The script:
+
+- checks the current Extroot status
+- installs missing packages
+- prepares and formats the external storage device
+- copies the overlay to USB storage
+- configures automatic mounting of `/overlay`
+- applies additional options to reduce flash wear
+
+This makes it possible to expand the available space for package installation and reduce wear on the router's internal storage.
 
 ---
 
