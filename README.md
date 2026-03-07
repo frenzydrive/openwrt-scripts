@@ -26,6 +26,12 @@
 
 ---
 
+## Установка плагина PassWall2 
+ 
+Автоматически устанавливает и настраивает **PassWall2** для OpenWrt.
+
+---
+
 ## Поддержка бокового переключателя на роутерах Cudy TR3000
  
 Добавляет поддержку **бокового аппаратного переключателя на роутерах Cudy (например TR3000)**.
@@ -172,6 +178,12 @@ Automatically installs:
 - Russian translation for Argon configuration page
 
 This allows quick customization of the OpenWrt web interface.
+
+---
+
+## PassWall2 Installation
+
+Automatically installs and configures **PassWall2** for OpenWrt.
 
 ---
 
