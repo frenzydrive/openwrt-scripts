@@ -78,17 +78,25 @@ OFF | Выключает Passwall2 и останавливает сервис
 Пример: установка темы Argon
 
 ```
-wget -O install_argon.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/install_argon.sh
-chmod +x install_argon.sh
-sh install_argon.sh
+cd /tmp && wget -O install_argon.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/install_argon.sh && chmod +x install_argon.sh && sh install_argon.sh
 ```
 
 Пример: установка поддержки VPN-переключателя
 
 ```
-wget -O install_vpn_switch.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/install_vpn_switch.sh
-chmod +x install_vpn_switch.sh
-sh install_vpn_switch.sh
+cd /tmp && wget -O install_vpn_switch.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/install_vpn_switch.sh && chmod +x install_vpn_switch.sh && sh install_vpn_switch.sh
+```
+
+Пример: установка Passwall2
+
+```
+cd /tmp && wget -O install_vpn_switch.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/install_passwall2.sh && chmod +x install_passwall2.sh && sh install_passwall2.sh
+```
+
+Пример: обновление Passwall2
+
+```
+cd /tmp && wget -O install_vpn_switch.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/update_passwall2.sh && chmod +x update_passwall2.sh && sh update_passwall2.sh
 ```
 
 ---
@@ -219,18 +227,28 @@ Modules can be installed directly from GitHub.
 Example: install Argon theme
 
 ```
-wget -O install_argon.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/install_argon.sh
-chmod +x install_argon.sh
-sh install_argon.sh
+cd /tmp && wget -O install_argon.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/install_argon.sh && chmod +x install_argon.sh && sh install_argon.sh
 ```
 
 Example: install VPN switch support
 
 ```
-wget -O install_vpn_switch.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/install_vpn_switch.sh
-chmod +x install_vpn_switch.sh
-sh install_vpn_switch.sh
+cd /tmp && wget -O install_vpn_switch.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/install_vpn_switch.sh && chmod +x install_vpn_switch.sh && sh install_vpn_switch.sh
 ```
+
+Example: install Passwall2
+
+```
+cd /tmp && wget -O install_vpn_switch.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/install_passwall2.sh && chmod +x install_passwall2.sh && sh install_passwall2.sh
+```
+
+Example: update Passwall2
+
+```
+cd /tmp && wget -O install_vpn_switch.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/update_passwall2.sh && chmod +x update_passwall2.sh && sh update_passwall2.sh
+```
+
+---
 
 ---
 
