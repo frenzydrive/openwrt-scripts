@@ -272,6 +272,98 @@ confirm_apply() {
     }
 }
 
+show_status() {
+    echo
+    echo "=== Mesh Status ==="
+    echo
+
+    mesh_section="$(uci show wireless | grep ".mode='mesh'" | head -n1 | cut -d. -f2 | cut -d= -f1)"
+    ap_sections="$(uci show wireless | grep ".mode='ap'" | cut -d. -f2 | cut -d= -f1 || true)"
+
+    lan_ip="$(uci -q get network.lan.ipaddr || echo 'not set')"
+    lan_mask="$(uci -q get network.lan.netmask || echo 'not set')"
+    lan_gw="$(uci -q get network.lan.gateway || echo 'not set')"
+    lan_dns="$(uci -q get network.lan.dns || echo 'not set')"
+    dhcp_ignore="$(uci -q get dhcp.lan.ignore || echo '0')"
+
+    echo "Mesh interface:"
+    if [ -n "$mesh_section" ]; then
+        mesh_radio="$(uci -q get wireless.$mesh_section.device || echo 'unknown')"
+        mesh_id="$(uci -q get wireless.$mesh_section.mesh_id || echo 'unknown')"
+        mesh_enc="$(uci -q get wireless.$mesh_section.encryption || echo 'unknown')"
+        mesh_disabled="$(uci -q get wireless.$mesh_section.disabled || echo '0')"
+
+        echo "- Found: yes"
+        echo "- Radio: $mesh_radio"
+        echo "- Mesh network name: $mesh_id"
+        echo "- Encryption: $mesh_enc"
+
+        if [ "$mesh_disabled" = "1" ]; then
+            echo "- Status: disabled"
+        else
+            echo "- Status: enabled"
+        fi
+    else
+        echo "- Found: no"
+    fi
+
+    echo
+    echo "Client Wi-Fi access points:"
+    if [ -n "$ap_sections" ]; then
+        for s in $ap_sections; do
+            ssid="$(uci -q get wireless.$s.ssid || echo 'unknown')"
+            radio="$(uci -q get wireless.$s.device || echo 'unknown')"
+            disabled="$(uci -q get wireless.$s.disabled || echo '0')"
+
+            if [ "$disabled" = "1" ]; then
+                state="disabled"
+            else
+                state="enabled"
+            fi
+
+            echo "- SSID: $ssid (radio: $radio, status: $state)"
+        done
+    else
+        echo "- No access points found"
+    fi
+
+    echo
+    echo "LAN settings:"
+    echo "- IP address: $lan_ip"
+    echo "- Netmask: $lan_mask"
+    echo "- Gateway: $lan_gw"
+    echo "- DNS: $lan_dns"
+
+    echo
+    echo "DHCP:"
+    if [ "$dhcp_ignore" = "1" ]; then
+        echo "- DHCP server is disabled"
+    else
+        echo "- DHCP server is enabled"
+    fi
+
+    echo
+    echo "Summary:"
+    if [ -z "$mesh_section" ]; then
+        echo "- Mesh is not configured on this router"
+        if [ "$dhcp_ignore" = "1" ]; then
+            echo "- This router currently looks like a secondary router or manually configured node without mesh"
+        else
+            echo "- This router currently looks like a normal main router or standard access point"
+        fi
+    else
+        if [ "$dhcp_ignore" = "1" ]; then
+            echo "- This router looks like a secondary mesh router"
+        else
+            echo "- This router looks like a main mesh router"
+        fi
+
+        if [ "$mesh_disabled" = "1" ]; then
+            echo "- Warning: mesh interface exists but is disabled"
+        fi
+    fi
+}
+
 configure_gateway() {
     echo
     echo -e "${GREEN}Configuring main mesh router...${NC}"
@@ -425,28 +517,6 @@ configure_node() {
     echo -e "${GREEN}Secondary mesh router configuration applied.${NC}"
     echo "DHCP is disabled on this router."
     echo "Backup directory: $BACKUP_DIR"
-}
-
-show_status() {
-    echo
-    echo -e "${CYAN}Wireless mesh-related configuration${NC}"
-    uci show wireless | grep -E "mode='mesh'|mesh_id=|mode='ap'|network='lan'|mesh_auto='1'" || true
-
-    echo
-    echo -e "${CYAN}LAN configuration${NC}"
-    uci show network.lan || true
-
-    echo
-    echo -e "${CYAN}DHCP configuration${NC}"
-    uci show dhcp.lan || true
-
-    echo
-    echo -e "${CYAN}Runtime wireless info${NC}"
-    iw dev 2>/dev/null || true
-
-    echo
-    echo -e "${CYAN}Current LAN IP${NC}"
-    ip -4 addr show br-lan 2>/dev/null || true
 }
 
 main_menu() {
