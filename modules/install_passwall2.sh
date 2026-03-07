@@ -120,7 +120,7 @@ uci set passwall2.Russia.domain_list='geosite:category-ru'
 uci set passwall2.Russia.ip_list='geoip:ru'
 
 # Направлять Russia в direct
-uci set passwall2.myshunt.Russia='_direct'
+uci set passwall2.rulenode.Russia='_direct'
 
 uci commit passwall2
 uci commit system
