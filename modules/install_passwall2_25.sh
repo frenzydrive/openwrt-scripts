@@ -55,23 +55,27 @@ detect_release_and_arch() {
 }
 
 configure_passwall_repo() {
-    log "${GREEN}Configuring PassWall APK feeds (ADB format)...${NC}"
+    log "${GREEN}Configuring PassWall APK feeds (Direct ADB)...${NC}"
 
-    # Полная очистка всех старых и кастомных списков для исключения конфликтов
+    # 1. Удаляем все старые списки
     rm -f /etc/apk/repositories.d/*.list
 
-    # Формируем пути. В OpenWrt 25 apk автоматически добавляет архитектуру к URL,
-    # поэтому указываем путь до папки релиза.
-    # Префикс [ndx:adb] принудительно включает поиск packages.adb вместо APKINDEX.tar.gz
-    local REPO_ROOT="$PASSWALL_BASE_URL/releases/packages-$RELEASE"
+    # 2. Формируем пути. 
+    # ВАЖНО: Мы НЕ используем переменную $ARCH в конце BASE, 
+    # так как apk сам её добавит.
+    local BASE="https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12"
     
+    # 3. Указываем префикс [ndx:adb] и папки. 
+    # apk сам допишет /aarch64_cortex-a53/packages.adb
     cat > "/etc/apk/repositories.d/passwall.list" <<EOF
-[ndx:adb]$REPO_ROOT/passwall_packages
-[ndx:adb]$REPO_ROOT/passwall_luci
-[ndx:adb]$REPO_ROOT/passwall2
+[ndx:adb]$BASE/passwall_packages
+[ndx:adb]$BASE/passwall_luci
+[ndx:adb]$BASE/passwall2
 EOF
 
-    log "${YELLOW}Feeds configured. Updating package lists...${NC}"
+    log "${YELLOW}Updating package lists with ADB support...${NC}"
+    # Очищаем кэш перед обновлением
+    rm -rf /var/cache/apk/*
     apk update || true
 }
 
