@@ -62,19 +62,17 @@ nano-full
 }
 
 pick_disk() {
-    # List sd* disks only
-    DISKS="$(lsblk -dn -o NAME,SIZE,TYPE | awk '$3=="disk" && $1 ~ /^sd/ {print "/dev/"$1" "$2}')"
+    DISKS="$(lsblk -dn -o NAME,SIZE,TYPE | awk '$3=="disk" && $1 ~ /^sd/ && $2!="0B" {print "/dev/"$1" "$2}')"
+
     [ -n "$DISKS" ] || return 1
 
-    echo -e "${CYAN}Detected storage devices:${NC}"
-    echo "$DISKS" | sed 's/^/  - /'
-    echo
+    echo -e "${CYAN}Detected storage devices:${NC}" >&2
+    echo "$DISKS" | sed 's/^/ - /' >&2
+    echo >&2
 
-    # Default: first disk
     DISK="$(echo "$DISKS" | awk 'NR==1{print $1}')"
-
-    echo -e "${YELLOW}Selected by default:${NC} $DISK"
-    printf "Use this disk? (y/N): "
+    echo -e "${YELLOW}Selected by default:${NC} $DISK" >&2
+    printf "Use this disk? (y/N): " >&2
     read ans
     [ "$ans" = "y" ] || [ "$ans" = "Y" ] || return 2
 
