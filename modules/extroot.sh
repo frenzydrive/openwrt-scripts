@@ -63,7 +63,7 @@ nano-full
 
 pick_disk() {
     # List sd* disks only
-    DISKS="$(lsblk -o NAME,SIZE,MODEL,TYPE | awk '$4=="disk" && $1 ~ /^sd/ {print "/dev/"$1"  "$2"  "$3}')"
+    DISKS="$(lsblk -dn -o NAME,SIZE,TYPE | awk '$3=="disk" && $1 ~ /^sd/ {print "/dev/"$1" "$2}')"
     [ -n "$DISKS" ] || return 1
 
     echo -e "${CYAN}Detected storage devices:${NC}"
