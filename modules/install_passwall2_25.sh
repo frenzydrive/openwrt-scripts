@@ -49,14 +49,16 @@ detect_release_and_arch() {
 }
 
 configure_passwall_repo() {
-    log "${GREEN}Configuring PassWall APK feeds...${NC}"
-    mkdir -p /etc/apk/repositories.d
+    log "${GREEN}Configuring PassWall APK feeds for OpenWrt 25.12 (aarch64_cortex-a53)...${NC}"
 
-    # Правильная структура URL для SourceForge: версия -> название фида -> архитектура
+    mkdir -p /etc/apk/repositories.d
+    
+    # Ссылка на конкретную папку, которую ты скинул
+    local REPO_URL="https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/aarch64_cortex-a53"
+
+    # В этой версии все пакеты лежат в одном месте, поэтому нам нужна всего одна строка в конфиге
     cat > "$PASSWALL_FEEDS_FILE" <<EOF_REPOS
-$PASSWALL_BASE_URL/releases/packages-$RELEASE/passwall_packages/$ARCH
-$PASSWALL_BASE_URL/releases/packages-$RELEASE/passwall_luci/$ARCH
-$PASSWALL_BASE_URL/releases/packages-$RELEASE/passwall2/$ARCH
+$REPO_URL
 EOF_REPOS
 
     apk update || true
