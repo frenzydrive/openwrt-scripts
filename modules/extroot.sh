@@ -42,6 +42,8 @@ lsblk
 usbutils
 fdisk
 nano-full
+kmod-usb3 
+kmod-usb-xhci-hcd
 "
 
     MISSING=""
