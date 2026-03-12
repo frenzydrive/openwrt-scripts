@@ -39,11 +39,10 @@ configure_basic_system() {
 }
 
 detect_release_and_arch() {
-    . /etc/openwrt_release
-    # Для 25.12 используем фиды от 24.10, так как они совместимы
+    # Для 25.12 используем фиды от 24.10, так как они совместимы и уже существуют
     RELEASE="24.10"
     
-    # В apk-версиях это вернет строку типа aarch64_cortex-a53
+    # В apk-версиях это вернет чистую строку архитектуры (например, aarch64_cortex-a53)
     ARCH=$(apk --print-arch)
     
     log "${YELLOW}Detected Arch: $ARCH. Using PassWall feeds for: $RELEASE${NC}"
@@ -53,7 +52,7 @@ configure_passwall_repo() {
     log "${GREEN}Configuring PassWall APK feeds...${NC}"
     mkdir -p /etc/apk/repositories.d
 
-    # Правильная структура URL для SourceForge: версия -> фид -> суб-архитектура
+    # Правильная структура URL для SourceForge: версия -> название фида -> архитектура
     cat > "$PASSWALL_FEEDS_FILE" <<EOF_REPOS
 $PASSWALL_BASE_URL/releases/packages-$RELEASE/passwall_packages/$ARCH
 $PASSWALL_BASE_URL/releases/packages-$RELEASE/passwall_luci/$ARCH
@@ -66,10 +65,10 @@ EOF_REPOS
 install_passwall_packages() {
     log "${GREEN}Installing PassWall2 and dependencies...${NC}"
     
-    # В apk удаление и установка делаются чисто
+    # Удаляем стандартный dnsmasq перед установкой full-версии
     apk del dnsmasq || true
     
-    # Ставим всё необходимое. --allow-untrusted нужен для сторонних репозиториев
+    # --allow-untrusted обязателен для сторонних репозиториев без импортированного ключа
     apk add --allow-untrusted \
         dnsmasq-full \
         wget-ssl \
@@ -87,7 +86,7 @@ install_passwall_packages() {
 install_xray() {
     log "${GREEN}Installing Xray...${NC}"
     if ! apk add --allow-untrusted xray-core; then
-        log "${YELLOW}Trying fallback script...${NC}"
+        log "${YELLOW}Trying fallback script for Xray...${NC}"
         wget -qO /tmp/amirhossein.sh "$FALLBACK_XRAY_URL"
         chmod +x /tmp/amirhossein.sh
         /bin/sh /tmp/amirhossein.sh
@@ -95,14 +94,14 @@ install_xray() {
 }
 
 install_ui_mods() {
-    log "${GREEN}Installing UI mods...${NC}"
+    log "${GREEN}Installing customized UI files...${NC}"
     wget -qO /tmp/mod.zip "$MOD_URL"
     unzip -o /tmp/mod.zip -d /
 }
 
 configure_passwall() {
     log "${GREEN}Applying PassWall settings...${NC}"
-    # Твои стандартные настройки шунтирования для РФ
+    # Твои настройки для обхода блокировок в РФ
     uci set passwall2.Russia='shunt_rules'
     uci set passwall2.Russia.remarks='Russia'
     uci set passwall2.Russia.domain_list='geosite:category-ru'
