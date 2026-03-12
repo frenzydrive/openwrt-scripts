@@ -34,7 +34,6 @@ if [ "$SNAP" = "SNAPSHOT" ]; then
 fi
 
 echo -e "${GREEN}Updating packages...${NC}"
-fi
 
 opkg update
 
