@@ -8,9 +8,7 @@ MAGENTA='\033[0;35m'
 NC='\033[0m'
 
 PASSWALL_BASE_URL="https://master.dl.sourceforge.net/project/openwrt-passwall-build"
-PASSWALL_KEY_URL="$PASSWALL_BASE_URL/passwall.pub"
-PASSWALL_KEY_PATH="/etc/apk/keys/passwall.pub"
-PASSWALL_FEEDS_FILE="/etc/apk/repositories.d/customfeeds.list"
+PASSWALL_FEEDS_FILE="/etc/apk/repositories.d/passwall.list"
 MOD_URL="https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/assets/passwall2/mod.zip"
 FALLBACK_XRAY_URL="https://raw.githubusercontent.com/amirhosseinchoghaei/mi4agigabit/main/amirhossein.sh"
 
@@ -28,29 +26,6 @@ require_root() {
 require_apk() {
     if ! command -v apk >/dev/null 2>&1; then
         log "${RED}This installer is for OpenWrt 25.12.x and newer (apk-based systems).${NC}"
-        log "${YELLOW}apk was not found on this router.${NC}"
-        exit 1
-    fi
-}
-
-get_release_and_arch() {
-    # shellcheck disable=SC1091
-    . /etc/openwrt_release
-
-    RELEASE="${DISTRIB_RELEASE%.*}"
-
-    if command -v apk >/dev/null 2>&1; then
-        ARCH="$(apk --print-arch 2>/dev/null || true)"
-    else
-        ARCH=""
-    fi
-
-    if [ -z "$ARCH" ]; then
-        ARCH="${DISTRIB_ARCH:-}"
-    fi
-
-    if [ -z "$RELEASE" ] || [ -z "$ARCH" ]; then
-        log "${RED}Failed to detect OpenWrt release or architecture.${NC}"
         exit 1
     fi
 }
@@ -71,20 +46,44 @@ configure_basic_system() {
     /sbin/reload_config
 }
 
+detect_release_and_arch() {
+    # shellcheck disable=SC1091
+    . /etc/openwrt_release
+
+    if echo "${DISTRIB_RELEASE:-}" | grep -q 'SNAPSHOT'; then
+        log "${YELLOW}SNAPSHOT version detected!${NC}"
+        log "${RED}SNAPSHOT builds are not supported by this installer.${NC}"
+        log "${YELLOW}Please use a stable OpenWrt release version.${NC}"
+        exit 1
+    fi
+
+    RELEASE="${DISTRIB_RELEASE%.*}"
+
+    ARCH="$(apk --print-arch 2>/dev/null || true)"
+    if [ -z "$ARCH" ]; then
+        ARCH="${DISTRIB_ARCH:-}"
+    fi
+
+    if [ -z "$RELEASE" ] || [ -z "$ARCH" ]; then
+        log "${RED}Failed to detect OpenWrt release or architecture.${NC}"
+        exit 1
+    fi
+
+    PASSWALL_RELEASE_URL="$PASSWALL_BASE_URL/releases/packages-$RELEASE/$ARCH"
+}
+
 configure_passwall_repo() {
     log "${GREEN}Configuring PassWall APK feeds for OpenWrt ${RELEASE} (${ARCH})...${NC}"
 
-    mkdir -p /etc/apk/keys /etc/apk/repositories.d
+    mkdir -p /etc/apk/repositories.d
 
-    wget -O "$PASSWALL_KEY_PATH" "$PASSWALL_KEY_URL"
+    cat > "$PASSWALL_FEEDS_FILE" <<EOF_REPOS
+$PASSWALL_RELEASE_URL/passwall_packages
+$PASSWALL_RELEASE_URL/passwall_luci
+$PASSWALL_RELEASE_URL/passwall2
+EOF_REPOS
 
-    cat > "$PASSWALL_FEEDS_FILE" <<EOT
-$PASSWALL_BASE_URL/releases/packages-$RELEASE/$ARCH/passwall_packages
-$PASSWALL_BASE_URL/releases/packages-$RELEASE/$ARCH/passwall_luci
-$PASSWALL_BASE_URL/releases/packages-$RELEASE/$ARCH/passwall2
-EOT
-
-    apk update
+    apk update || true
 }
 
 install_passwall_packages() {
@@ -94,7 +93,7 @@ install_passwall_packages() {
         apk del dnsmasq || true
     fi
 
-    apk add \
+    apk add --allow-untrusted \
         dnsmasq-full \
         wget-ssl \
         unzip \
@@ -125,9 +124,7 @@ install_passwall_packages() {
 install_xray() {
     log "${GREEN}Installing Xray...${NC}"
 
-    if apk add xray-core; then
-        :
-    else
+    if ! apk add --allow-untrusted xray-core; then
         log "${YELLOW}xray-core installation failed from repository, trying fallback...${NC}"
     fi
 
@@ -150,7 +147,7 @@ install_ui_mods() {
     rm -f mod.zip
     wget -q -O mod.zip "$MOD_URL"
     unzip -o mod.zip -d /
-    cd /root || cd /
+    cd /root 2>/dev/null || cd /
 }
 
 configure_passwall() {
@@ -159,14 +156,23 @@ configure_passwall() {
     uci set system.@system[0].zonename='Europe/Moscow'
     uci set system.@system[0].timezone='MSK-3'
 
-    uci set passwall2.@global_forwarding[0]=global_forwarding
+    if ! uci -q get passwall2.@global_forwarding[0] >/dev/null; then
+        uci add passwall2 global_forwarding >/dev/null
+    fi
+    if ! uci -q get passwall2.@global[0] >/dev/null; then
+        uci add passwall2 global >/dev/null
+    fi
+    if ! uci -q get passwall2.rulenode >/dev/null; then
+        uci set passwall2.rulenode='nodes'
+    fi
+
     uci set passwall2.@global_forwarding[0].tcp_no_redir_ports='disable'
     uci set passwall2.@global_forwarding[0].udp_no_redir_ports='disable'
     uci set passwall2.@global_forwarding[0].tcp_redir_ports='1:65535'
     uci set passwall2.@global_forwarding[0].udp_redir_ports='1:65535'
     uci set passwall2.@global[0].remote_dns='8.8.4.4'
 
-    uci set passwall2.Russia=shunt_rules
+    uci set passwall2.Russia='shunt_rules'
     uci set passwall2.Russia.network='tcp,udp'
     uci set passwall2.Russia.remarks='Russia'
     uci set passwall2.Russia.domain_list='geosite:category-ru'
@@ -180,7 +186,8 @@ configure_passwall() {
 }
 
 cleanup() {
-    rm -f /tmp/install_passwall2.sh /tmp/amirhossein.sh /tmp/mod.zip /root/passwall.pub passwalls.sh 2>/dev/null || true
+    rm -f /tmp/install_passwall2.sh /tmp/install_passwall2_25.sh /tmp/install_passwall2_25_auto.sh \
+          /tmp/amirhossein.sh /tmp/mod.zip /root/passwall.pub passwalls.sh 2>/dev/null || true
 }
 
 main() {
@@ -191,8 +198,8 @@ main() {
     log "Running as root..."
     sleep 1
 
-    get_release_and_arch
     configure_basic_system
+    detect_release_and_arch
     configure_passwall_repo
     install_passwall_packages
     install_xray
