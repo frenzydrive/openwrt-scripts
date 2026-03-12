@@ -49,18 +49,21 @@ detect_release_and_arch() {
 }
 
 configure_passwall_repo() {
-    log "${GREEN}Configuring PassWall APK feeds for OpenWrt 25.12 (aarch64_cortex-a53)...${NC}"
+    log "${GREEN}Configuring PassWall APK feeds for OpenWrt 25.12...${NC}"
 
-    mkdir -p /etc/apk/repositories.d
-    
-    # Ссылка на конкретную папку, которую ты скинул
+    # 1. Удаляем старые списки, чтобы apk не пытался лезть по битым ссылкам
+    rm -f /etc/apk/repositories.d/passwall.list
+
+    # 2. Указываем ПРЯМОЙ путь к папке, где лежит APKINDEX
+    # На SourceForge для 25.12 структура плоская
     local REPO_URL="https://master.dl.sourceforge.net/project/openwrt-passwall-build/releases/packages-25.12/aarch64_cortex-a53"
 
-    # В этой версии все пакеты лежат в одном месте, поэтому нам нужна всего одна строка в конфиге
-    cat > "$PASSWALL_FEEDS_FILE" <<EOF_REPOS
-$REPO_URL
-EOF_REPOS
+    # 3. Создаем чистый конфиг
+    echo "$REPO_URL" > /etc/apk/repositories.d/passwall.list
 
+    log "${YELLOW}Applying repo: $REPO_URL${NC}"
+    
+    # 4. Обновляемся
     apk update || true
 }
 
