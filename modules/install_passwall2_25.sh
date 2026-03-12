@@ -73,23 +73,28 @@ detect_release_and_arch() {
 }
 
 configure_passwall_repo() {
-    log "${GREEN}Configuring PassWall APK feeds for OpenWrt ${RELEASE}...${NC}"
+    log "${GREEN}Configuring PassWall APK feeds...${NC}"
 
     mkdir -p /etc/apk/repositories.d
 
-    # Нам нужно узнать конкретную архитектуру пакетов (например, aarch64_cortex-a53)
-    # В apk-системах ее можно вытащить из существующих конфигов
-    SUB_ARCH=$(grep "packages/.*" /etc/apk/repositories.d/distribrepos.list | head -n 1 | rev | cut -d'/' -f2 | rev)
+    # 1. Достаем архитектуру напрямую через apk
+    # Обычно это что-то вроде aarch64_cortex-a53
+    SUB_ARCH=$(apk --print-arch)
 
-    if [ -z "$SUB_ARCH" ]; then
-        SUB_ARCH="$ARCH" # Фолбэк, если не удалось определить точно
+    # 2. Проверяем версию. Если это 25.12, которой еще нет в репозитории PassWall,
+    # мы подменим её на 24.10, чтобы пакеты могли установиться.
+    # (Пакеты от 24.10 совместимы с 25.12 по архитектуре)
+    PW_VER="$RELEASE"
+    if [ "$RELEASE" = "25.12" ]; then
+        log "${YELLOW}Forcing 24.10 repository for 25.12 compatibility...${NC}"
+        PW_VER="24.10"
     fi
 
-    # Исправляем структуру URL: Версия -> Название фида -> Суб-архитектура
+    # 3. Формируем правильные пути (Версия -> Фид -> Архитектура)
     cat > "$PASSWALL_FEEDS_FILE" <<EOF_REPOS
-$PASSWALL_BASE_URL/releases/packages-$RELEASE/passwall_packages/$SUB_ARCH
-$PASSWALL_BASE_URL/releases/packages-$RELEASE/passwall_luci/$SUB_ARCH
-$PASSWALL_BASE_URL/releases/packages-$RELEASE/passwall2/$SUB_ARCH
+$PASSWALL_BASE_URL/releases/packages-$PW_VER/passwall_packages/$SUB_ARCH
+$PASSWALL_BASE_URL/releases/packages-$PW_VER/passwall_luci/$SUB_ARCH
+$PASSWALL_BASE_URL/releases/packages-$PW_VER/passwall2/$SUB_ARCH
 EOF_REPOS
 
     apk update || true
