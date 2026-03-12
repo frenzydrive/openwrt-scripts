@@ -73,14 +73,23 @@ detect_release_and_arch() {
 }
 
 configure_passwall_repo() {
-    log "${GREEN}Configuring PassWall APK feeds for OpenWrt ${RELEASE} (${ARCH})...${NC}"
+    log "${GREEN}Configuring PassWall APK feeds for OpenWrt ${RELEASE}...${NC}"
 
     mkdir -p /etc/apk/repositories.d
 
+    # Нам нужно узнать конкретную архитектуру пакетов (например, aarch64_cortex-a53)
+    # В apk-системах ее можно вытащить из существующих конфигов
+    SUB_ARCH=$(grep "packages/.*" /etc/apk/repositories.d/distribrepos.list | head -n 1 | rev | cut -d'/' -f2 | rev)
+
+    if [ -z "$SUB_ARCH" ]; then
+        SUB_ARCH="$ARCH" # Фолбэк, если не удалось определить точно
+    fi
+
+    # Исправляем структуру URL: Версия -> Название фида -> Суб-архитектура
     cat > "$PASSWALL_FEEDS_FILE" <<EOF_REPOS
-$PASSWALL_RELEASE_URL/passwall_packages
-$PASSWALL_RELEASE_URL/passwall_luci
-$PASSWALL_RELEASE_URL/passwall2
+$PASSWALL_BASE_URL/releases/packages-$RELEASE/passwall_packages/$SUB_ARCH
+$PASSWALL_BASE_URL/releases/packages-$RELEASE/passwall_luci/$SUB_ARCH
+$PASSWALL_BASE_URL/releases/packages-$RELEASE/passwall2/$SUB_ARCH
 EOF_REPOS
 
     apk update || true
