@@ -165,7 +165,17 @@ do_install() {
     fi
 
     install_missing_pkgs || { echo -e "${RED}Package install failed.${NC}"; return 1; }
+    
+    echo "Waiting for USB storage to appear..."
+    sleep 5
+    block info >/dev/null 2>&1
 
+    for i in $(seq 1 10); do
+        DISKS="$(lsblk -dn -o NAME,SIZE,TYPE | awk '$3=="disk" && $1 ~ /^sd/ && $2!="0B" {print "/dev/"$1" "$2}')"
+        [ -n "$DISKS" ] && break
+        sleep 2
+    done
+    
     DISK="$(pick_disk)" || {
         rc=$?
         [ $rc -eq 2 ] && echo -e "${YELLOW}Cancelled by user.${NC}"
