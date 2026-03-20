@@ -102,7 +102,7 @@ cd /tmp && wget -O extroot.sh https://raw.githubusercontent.com/frenzydrive/open
 cd /tmp && wget -O install_argon.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/install_argon.sh && chmod +x install_argon.sh && sh install_argon.sh
 ```
 
-Пример: установка поддержки VPN-переключателя
+Пример: установка поддержки бокового VPN-переключателя (только для Cudy TR3000)
 
 ```
 cd /tmp && wget -O install_vpn_switch.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/install_vpn_switch.sh && chmod +x install_vpn_switch.sh && sh install_vpn_switch.sh
@@ -272,7 +272,7 @@ Example: install Argon theme
 cd /tmp && wget -O install_argon.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/install_argon.sh && chmod +x install_argon.sh && sh install_argon.sh
 ```
 
-Example: install VPN switch support
+Example: Setting up VPN side switch support (Cudy TR3000 only)
 
 ```
 cd /tmp && wget -O install_vpn_switch.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/install_vpn_switch.sh && chmod +x install_vpn_switch.sh && sh install_vpn_switch.sh
