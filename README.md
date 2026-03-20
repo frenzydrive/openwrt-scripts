@@ -90,6 +90,12 @@ OFF | Выключает Passwall2 и останавливает сервис
 
 Модули можно установить напрямую из GitHub.
 
+Пример: Расширение внутренней памяти роутера на usb флешку
+
+```
+cd /tmp && wget -O extroot.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/extroot.sh && chmod +x extroot.sh && sh extroot.sh
+```
+
 Пример: установка темы Argon
 
 ```
@@ -253,6 +259,12 @@ Each module performs one specific task.
 # Installation
 
 Modules can be installed directly from GitHub.
+
+Example: expanding the router's internal memory using a USB flash drive
+
+```
+cd /tmp && wget -O extroot.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/extroot.sh && chmod +x extroot.sh && sh extroot.sh
+```
 
 Example: install Argon theme
 
