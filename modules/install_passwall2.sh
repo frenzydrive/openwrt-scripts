@@ -120,6 +120,10 @@ uci set passwall2.@global[0].remote_dns_detour='remote'
 uci set passwall2.@global[0].remote_dns_doh='https://1.1.1.1/dns-query'
 uci set passwall2.@global[0].dns_redirect='1'
 
+# Удаляем дефолтные правила
+uci -q delete passwall2.China
+uci -q delete passwall2.Iran
+
 # Новое правило Russia
 uci set passwall2.Russia=shunt_rules
 uci set passwall2.Russia.network='tcp,udp'
