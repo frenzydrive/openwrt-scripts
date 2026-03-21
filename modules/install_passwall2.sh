@@ -108,7 +108,17 @@ uci set passwall2.@global_forwarding[0].tcp_no_redir_ports='disable'
 uci set passwall2.@global_forwarding[0].udp_no_redir_ports='disable'
 uci set passwall2.@global_forwarding[0].tcp_redir_ports='1:65535'
 uci set passwall2.@global_forwarding[0].udp_redir_ports='1:65535'
-uci set passwall2.@global[0].remote_dns='8.8.4.4'
+
+# DNS настройки как в LuCI
+uci set passwall2.@global[0].direct_dns_protocol='auto'
+uci set passwall2.@global[0].direct_dns_query_strategy='UseIP'
+uci set passwall2.@global[0].remote_dns_protocol='doh'
+uci set passwall2.@global[0].remote_dns_query_strategy='UseIPv4'
+uci set passwall2.@global[0].dns_hosts='cloudflare-dns.com 1.1.1.1
+dns.google.com 8.8.8.8'
+uci set passwall2.@global[0].remote_dns_detour='remote'
+uci set passwall2.@global[0].remote_dns_doh='https://1.1.1.1/dns-query'
+uci set passwall2.@global[0].dns_redirect='1'
 
 # Новое правило Russia
 uci set passwall2.Russia=shunt_rules
@@ -131,3 +141,4 @@ rm -f /tmp/install_passwall2.sh
 rm passwalls.sh
 
 /sbin/reload_config
+/etc/init.d/passwall2 restart
