@@ -132,6 +132,7 @@ get_router_title() {
 patch_argon_title() {
     local title
     local file
+    local tmpfile
 
     title="$(get_router_title)"
 
@@ -140,8 +141,21 @@ patch_argon_title() {
         /usr/lib/lua/luci/view/themes/argon/header_login.htm
     do
         [ -f "$file" ] || continue
+
         cp -f "$file" "${file}.bak" 2>/dev/null || true
-        sed -i "s#<title[^>]*>.*</title>#<title>${title}</title>#" "$file"
+
+        tmpfile="$(mktemp /tmp/argon-title.XXXXXX)" || {
+            warn "Failed to create temp file"
+            continue
+        }
+
+        if sed "s#<title[^>]*>.*</title>#<title>${title}</title>#" "$file" > "$tmpfile"; then
+            cat "$tmpfile" > "$file"
+        else
+            warn "Failed to patch title in $file"
+        fi
+
+        rm -f "$tmpfile"
     done
 
     log "Browser tab title set to: $title"
