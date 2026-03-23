@@ -11,40 +11,45 @@ NC='\033[0m'
 OVERLAY_OPTS='noatime,nodiratime,commit=60'
 LOG_SIZE='32'
 
-pause() { printf "\nPress Enter to continue..."; read _; }
+pause() {
+    printf "\nPress Enter to continue..."
+    read _
+}
 
 banner() {
     clear
-    echo "${YELLOW}
-    ______     __  ____              __
-   / ____/  __/ /_/ __ \\____  ____  / /_
-  / __/ | |/_/ __/ /_/ / __ \\/ __ \\/ __/
- / /____>  </ /_/ _, _/ /_/ / /_/ / /_
-/_____/_/|_|\\__/_/ |_|\\____/\\____/\\__/
-${NC}"
-    echo "${CYAN}• OpenWrt Extroot Installer •${NC}"
+    echo "${YELLOW}"
+    echo "    ______     __  ____              __"
+    echo "   / ____/  __/ /_/ __ \____  ____  / /_"
+    echo "  / __/ | |/_/ __/ /_/ / __ \/ __ \/ __/"
+    echo " / /____>  </ /_/ _, _/ /_/ / /_/ / /_"
+    echo "/_____/_/|_|\__/_/ |_|\____/\____/\__/"
+    echo "${NC}"
+    echo -e "${CYAN}• OpenWrt Extroot Installer •${NC}"
     echo "--------------------------------------"
 }
 
-is_installed() { opkg list-installed 2>/dev/null | grep -q "^$1 "; }
+is_installed() {
+    opkg list-installed 2>/dev/null | grep -q "^$1 "
+}
 
 install_missing_pkgs() {
     REQUIRED_PKGS="
-kmod-usb-storage
-kmod-usb-storage-extras
-kmod-usb-storage-uas
-kmod-usb-ohci
-kmod-usb-uhci
-e2fsprogs
-kmod-fs-ext4
-block-mount
-lsblk
-usbutils
-fdisk
-nano-full
-kmod-usb3 
-kmod-usb-xhci-hcd
-"
+        kmod-usb-storage
+        kmod-usb-storage-extras
+        kmod-usb-storage-uas
+        kmod-usb-ohci
+        kmod-usb-uhci
+        e2fsprogs
+        kmod-fs-ext4
+        block-mount
+        lsblk
+        usbutils
+        fdisk
+        nano-full
+        kmod-usb3
+        kmod-usb-xhci-hcd
+    "
 
     MISSING=""
     for pkg in $REQUIRED_PKGS; do
@@ -65,7 +70,6 @@ kmod-usb-xhci-hcd
 
 pick_disk() {
     DISKS="$(lsblk -dn -o NAME,SIZE,TYPE | awk '$3=="disk" && $1 ~ /^sd/ && $2!="0B" {print "/dev/"$1" "$2}')"
-
     [ -n "$DISKS" ] || return 1
 
     echo -e "${CYAN}Detected storage devices:${NC}" >&2
@@ -109,7 +113,6 @@ configure_fstab_extroot() {
     UUID="$(block info "$PART" 2>/dev/null | sed -n 's/.*UUID="\([^"]*\)".*/\1/p' | head -n1)"
     [ -n "$UUID" ] || return 1
 
-    # Find mount section that matches this UUID, else create new
     idx=""
     i=0
     while uci -q get "fstab.@mount[$i]" >/dev/null 2>&1; do
@@ -131,22 +134,18 @@ configure_fstab_extroot() {
     uci set "fstab.@mount[$idx].enabled=1"
     uci set "fstab.@mount[$idx].options=$OVERLAY_OPTS"
 
-    # Flash longevity defaults
     uci -q set fstab.@global[0].auto_swap='0' 2>/dev/null || true
     uci commit fstab
-
     return 0
 }
 
 apply_longevity_tweaks() {
-    # Keep logs in RAM
     uci -q delete system.@system[0].log_file 2>/dev/null || true
     uci -q set system.@system[0].log_size="$LOG_SIZE" 2>/dev/null || true
     uci -q commit system 2>/dev/null || true
 
     ensure_rc_local_remount
 
-    # Passive log scan
     LOGS_FOUND="$(find /overlay -type f \( -name '*.log' -o -name '*access*' -o -name '*error*' \) 2>/dev/null | head -n 5 || true)"
     if [ -n "$LOGS_FOUND" ]; then
         echo -e "${YELLOW}[WARN] Found possible log files on /overlay (may increase writes):${NC}"
@@ -155,17 +154,22 @@ apply_longevity_tweaks() {
 }
 
 do_install() {
-    [ "$(id -u)" = "0" ] || { echo -e "${RED}Run as root!${NC}"; return 1; }
+    [ "$(id -u)" = "0" ] || {
+        echo -e "${RED}Run as root!${NC}"
+        return 1
+    }
 
-    # ---- Check if extroot already active ----
     if block info 2>/dev/null | grep -qE 'MOUNT="/overlay".*TYPE="ext4"'; then
         echo -e "${GREEN}Extroot already active: /overlay is on ext4 USB.${NC}"
         echo -e "${YELLOW}Installation skipped.${NC}"
         return 0
     fi
 
-    install_missing_pkgs || { echo -e "${RED}Package install failed.${NC}"; return 1; }
-    
+    install_missing_pkgs || {
+        echo -e "${RED}Package install failed.${NC}"
+        return 1
+    }
+
     echo "Waiting for USB storage to appear..."
     sleep 5
     block info >/dev/null 2>&1
@@ -175,7 +179,7 @@ do_install() {
         [ -n "$DISKS" ] && break
         sleep 2
     done
-    
+
     DISK="$(pick_disk)" || {
         rc=$?
         [ $rc -eq 2 ] && echo -e "${YELLOW}Cancelled by user.${NC}"
@@ -186,40 +190,47 @@ do_install() {
     PART="${DISK}1"
     MNT="/mnt/usb"
 
-    echo -e "${YELLOW}WARNING:${NC} This will (re)partition/format ${DISK} if needed."
+    echo -e "${YELLOW}WARNING:${NC} This will erase all data on ${DISK}."
     printf "Type YES to continue: "
     read confirm
-    [ "$confirm" = "YES" ] || { echo -e "${YELLOW}Cancelled.${NC}"; return 1; }
+    [ "$confirm" = "YES" ] || {
+        echo -e "${YELLOW}Cancelled.${NC}"
+        return 1
+    }
 
-    # Unmount if mounted
     mount | grep -q "^$PART " && umount "$PART" 2>/dev/null || true
     mount | grep -q " $MNT " && umount "$MNT" 2>/dev/null || true
+    umount "${DISK}"* 2>/dev/null || true
 
-    # Partition if missing
-    if [ ! -b "$PART" ]; then
-        echo -e "${YELLOW}Creating MBR + single primary partition...${NC}"
-        printf 'o\nn\np\n1\n\n\nw\n' | fdisk "$DISK" >/dev/null 2>&1
-        sleep 2
-    fi
-    [ -b "$PART" ] || { echo -e "${RED}Partition $PART not found after fdisk.${NC}"; return 1; }
+    echo -e "${YELLOW}Repartitioning ${DISK}...${NC}"
+    printf 'o\nn\np\n1\n\n\nw\n' | fdisk "$DISK" >/dev/null 2>&1
+    sleep 2
 
-    # Format if not ext4
-    FSTYPE="$(block info "$PART" 2>/dev/null | sed -n 's/.*TYPE="\([^"]*\)".*/\1/p' | head -n1)"
-    if [ "$FSTYPE" != "ext4" ]; then
-        echo -e "${YELLOW}Formatting $PART as ext4 (no reserved blocks)...${NC}"
-        mkfs.ext4 -F -m 0 "$PART" || { echo -e "${RED}mkfs.ext4 failed.${NC}"; return 1; }
-    else
-        echo -e "${GREEN}Filesystem already ext4.${NC}"
-    fi
+    [ -b "$PART" ] || {
+        echo -e "${RED}Partition $PART not found after fdisk.${NC}"
+        return 1
+    }
 
-    # Mount temp
+    echo -e "${YELLOW}Formatting $PART as ext4 (no reserved blocks)...${NC}"
+    mkfs.ext4 -F -m 0 "$PART" || {
+        echo -e "${RED}mkfs.ext4 failed.${NC}"
+        return 1
+    }
+    sleep 2
+
     mkdir -p "$MNT"
-    mount "$PART" "$MNT" || { echo -e "${RED}Mount failed.${NC}"; return 1; }
+    mount "$PART" "$MNT" || {
+        echo -e "${RED}Mount failed.${NC}"
+        return 1
+    }
 
-    # Copy overlay once
     if [ ! -d "$MNT/upper" ]; then
         echo -e "${YELLOW}Copying /overlay to USB...${NC}"
-        tar -C /overlay -cpf - . | tar -C "$MNT" -xpf - || { umount "$MNT" 2>/dev/null; echo -e "${RED}Overlay copy failed.${NC}"; return 1; }
+        tar -C /overlay -cpf - . | tar -C "$MNT" -xpf - || {
+            umount "$MNT" 2>/dev/null
+            echo -e "${RED}Overlay copy failed.${NC}"
+            return 1
+        }
         sync
     else
         echo -e "${GREEN}Overlay already copied (upper exists).${NC}"
@@ -227,10 +238,14 @@ do_install() {
 
     umount "$MNT" 2>/dev/null || true
 
-    configure_fstab_extroot "$PART" || { echo -e "${RED}Failed to configure fstab extroot.${NC}"; return 1; }
+    configure_fstab_extroot "$PART" || {
+        echo -e "${RED}Failed to configure fstab extroot.${NC}"
+        return 1
+    }
+
     apply_longevity_tweaks
 
-    echo -e "${GREEN}Done. Rebooting...${NC}"
+    echo -e "${GREEN}Done.\nRebooting...${NC}"
     sleep 2
     reboot
     return 0
@@ -242,7 +257,7 @@ check_status() {
     echo "--------------------------------------"
 
     echo -e "${CYAN}[Overlay mount]${NC}"
-    mount | grep -E ' on /overlay | overlayfs:' || echo "  (no overlay mounts found?)"
+    mount | grep -E ' on /overlay | overlayfs:' || echo " (no overlay mounts found?)"
     echo
 
     echo -e "${CYAN}[Block info]${NC}"
@@ -251,45 +266,45 @@ check_status() {
 
     echo -e "${CYAN}[fstab]${NC}"
     if [ -f /etc/config/fstab ]; then
-        uci -q show fstab | sed 's/^/  /'
+        uci -q show fstab | sed 's/^/ /'
     else
-        echo "  /etc/config/fstab not found"
+        echo " /etc/config/fstab not found"
     fi
     echo
 
     echo -e "${CYAN}[Swap]${NC}"
-    free | sed 's/^/  /'
+    free | sed 's/^/ /'
     echo
-    swapon -s | sed 's/^/  /'
+    swapon -s | sed 's/^/ /'
     echo
 
     echo -e "${CYAN}[System logging]${NC}"
     lf="$(uci -q get system.@system[0].log_file 2>/dev/null || true)"
     ls="$(uci -q get system.@system[0].log_size 2>/dev/null || true)"
-    [ -n "$lf" ] && echo -e "  log_file: ${YELLOW}$lf${NC}" || echo -e "  log_file: ${GREEN}(not set)${NC} (logs in RAM)"
-    [ -n "$ls" ] && echo "  log_size: $ls" || echo "  log_size: (not set)"
+    [ -n "$lf" ] && echo -e " log_file: ${YELLOW}$lf${NC}" || echo -e " log_file: ${GREEN}(not set)${NC} (logs in RAM)"
+    [ -n "$ls" ] && echo " log_size: $ls" || echo " log_size: (not set)"
     echo
 
     echo -e "${CYAN}[rc.local extroot remount]${NC}"
     if [ -f /etc/rc.local ]; then
         if grep -q "extroot-tune: remount /overlay" /etc/rc.local; then
-            echo -e "  ${GREEN}present${NC}"
-            grep -n "extroot-tune: remount /overlay\|mount -o remount" /etc/rc.local | sed 's/^/  /'
+            echo -e " ${GREEN}present${NC}"
+            grep -n "extroot-tune: remount /overlay\|mount -o remount" /etc/rc.local | sed 's/^/ /'
         else
-            echo -e "  ${YELLOW}not present${NC}"
+            echo -e " ${YELLOW}not present${NC}"
         fi
     else
-        echo -e "  ${YELLOW}/etc/rc.local not found${NC}"
+        echo -e " ${YELLOW}/etc/rc.local not found${NC}"
     fi
     echo
 
     echo -e "${CYAN}[Potential log files on /overlay]${NC}"
     logs="$(find /overlay -type f \( -name '*.log' -o -name '*access*' -o -name '*error*' \) 2>/dev/null | head -n 20 || true)"
     if [ -n "$logs" ]; then
-        echo -e "${YELLOW}  Found:${NC}"
-        echo "$logs" | sed 's/^/  /'
+        echo -e "${YELLOW} Found:${NC}"
+        echo "$logs" | sed 's/^/ /'
     else
-        echo -e "${GREEN}  None found${NC}"
+        echo -e "${GREEN} None found${NC}"
     fi
     echo
 }
