@@ -130,26 +130,21 @@ get_router_title() {
 }
 
 patch_argon_title() {
-    local title file
+    local title
+    local file
 
     title="$(get_router_title)"
 
-    file="/overlay/upper/usr/lib/lua/luci/view/themes/argon/header.htm"
-    [ -f "$file" ] || file="/usr/lib/lua/luci/view/themes/argon/header.htm"
+    for file in \
+        /usr/lib/lua/luci/view/themes/argon/header.htm \
+        /usr/lib/lua/luci/view/themes/argon/header_login.htm
+    do
+        [ -f "$file" ] || continue
+        cp -f "$file" "${file}.bak" 2>/dev/null || true
+        sed -i "s#<title[^>]*>.*</title>#<title>${title}</title>#" "$file"
+    done
 
-    [ -f "$file" ] || {
-        warn "Argon header not found, skipping title patch"
-        return 0
-    }
-
-    cp -f "$file" "${file}.bak" 2>/dev/null || true
-
-    if grep -q '<title>' "$file"; then
-        log "Setting browser tab title to: $title"
-        sed -i "s#<title>.*</title>#<title>${title}</title>#" "$file"
-    else
-        warn "No <title> tag found in $file"
-    fi
+    log "Browser tab title set to: $title"
 }
 
 restart_luci() {
