@@ -129,10 +129,22 @@ get_router_title() {
     printf '%s\n' "$title"
 }
 
+get_router_title() {
+    local title
+
+    title="$(cat /tmp/sysinfo/model 2>/dev/null || true)"
+    [ -n "$title" ] || title="OpenWrt"
+
+    title="$(printf '%s' "$title" | sed 's/[[:cntrl:]]//g; s/[[:space:]]\+/ /g; s/^ //; s/ $//')"
+
+    printf '%s\n' "$title"
+}
+
 patch_argon_title() {
     local title
     local file
-    local tmpfile
+    local content
+    local new_content
 
     title="$(get_router_title)"
 
@@ -142,20 +154,12 @@ patch_argon_title() {
     do
         [ -f "$file" ] || continue
 
-        cp -f "$file" "${file}.bak" 2>/dev/null || true
+        content="$(cat "$file")"
+        new_content="$(printf '%s\n' "$content" | sed "s#<title[^>]*>.*</title>#<title>${title}</title>#")"
 
-        tmpfile="$(mktemp /tmp/argon-title.XXXXXX)" || {
-            warn "Failed to create temp file"
-            continue
-        }
-
-        if sed "s#<title[^>]*>.*</title>#<title>${title}</title>#" "$file" > "$tmpfile"; then
-            cat "$tmpfile" > "$file"
-        else
-            warn "Failed to patch title in $file"
+        if [ "$content" != "$new_content" ]; then
+            printf '%s\n' "$new_content" > "$file"
         fi
-
-        rm -f "$tmpfile"
     done
 
     log "Browser tab title set to: $title"
