@@ -121,18 +121,6 @@ get_router_title() {
     local title
 
     title="$(cat /tmp/sysinfo/model 2>/dev/null || true)"
-    [ -n "$title" ] || title="$(uci -q get system.@system[0].hostname 2>/dev/null || true)"
-    [ -n "$title" ] || title="OpenWrt"
-
-    title="$(printf '%s' "$title" | sed 's/[[:cntrl:]]//g; s/[[:space:]]\+/ /g; s/^ //; s/ $//')"
-
-    printf '%s\n' "$title"
-}
-
-get_router_title() {
-    local title
-
-    title="$(cat /tmp/sysinfo/model 2>/dev/null || true)"
     [ -n "$title" ] || title="OpenWrt"
 
     title="$(printf '%s' "$title" | sed 's/[[:cntrl:]]//g; s/[[:space:]]\+/ /g; s/^ //; s/ $//')"
