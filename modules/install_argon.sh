@@ -3,7 +3,6 @@ set -eu
 
 REPO="https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/assets/argon-config"
 TMP="/tmp/argon-install"
-
 THEME_IPK="luci-theme-argon_2.4.3-r20250722_all.ipk"
 APP_IPK="luci-app-argon-config_0.9_all.ipk"
 RU_LMO="argon-config.ru.lmo"
@@ -85,6 +84,7 @@ install_translation_lmo() {
 
 ensure_menu() {
     MENU="/usr/share/luci/menu.d/luci-app-argon-config.json"
+
     if [ ! -f "$MENU" ]; then
         log "Creating missing menu entry: $MENU"
         mkdir -p /usr/share/luci/menu.d
@@ -117,6 +117,41 @@ EOF
     fi
 }
 
+get_router_title() {
+    local title
+
+    title="$(cat /tmp/sysinfo/model 2>/dev/null || true)"
+    [ -n "$title" ] || title="$(uci -q get system.@system[0].hostname 2>/dev/null || true)"
+    [ -n "$title" ] || title="OpenWrt"
+
+    title="$(printf '%s' "$title" | sed 's/[[:cntrl:]]//g; s/[[:space:]]\+/ /g; s/^ //; s/ $//')"
+
+    printf '%s\n' "$title"
+}
+
+patch_argon_title() {
+    local title file
+
+    title="$(get_router_title)"
+
+    file="/overlay/upper/usr/lib/lua/luci/view/themes/argon/header.htm"
+    [ -f "$file" ] || file="/usr/lib/lua/luci/view/themes/argon/header.htm"
+
+    [ -f "$file" ] || {
+        warn "Argon header not found, skipping title patch"
+        return 0
+    }
+
+    cp -f "$file" "${file}.bak" 2>/dev/null || true
+
+    if grep -q '<title>' "$file"; then
+        log "Setting browser tab title to: $title"
+        sed -i "s#<title>.*</title>#<title>${title}</title>#" "$file"
+    else
+        warn "No <title> tag found in $file"
+    fi
+}
+
 restart_luci() {
     log "Restarting LuCI..."
     rm -rf /tmp/luci-indexcache /tmp/luci-modulecache 2>/dev/null || true
@@ -127,7 +162,8 @@ restart_luci() {
 # --- main ---
 
 if ! is_installed luci-base; then
-    die "LuCI (luci-base) is not installed. Install LuCI first, then run this script."
+    die "LuCI (luci-base) is not installed.
+Install LuCI first, then run this script."
 fi
 
 mkdir -p "$TMP"
@@ -146,8 +182,10 @@ if is_installed luci-theme-argon && is_installed luci-app-argon-config; then
     log "Argon theme + Argon Config already installed. Skipping package install."
     install_translation_lmo || true
     ensure_menu
+    patch_argon_title
     restart_luci
-    log "Done. Open LuCI -> System -> Argon Config"
+    log "Done.
+Open LuCI -> System -> Argon Config"
     exit 0
 fi
 
@@ -170,8 +208,9 @@ if ! is_installed luci-app-argon-config; then
 fi
 
 install_translation_lmo || true
-
 ensure_menu
+patch_argon_title
 restart_luci
 
-log "Done. Open LuCI -> System -> Argon Config"
+log "Done.
+Open LuCI -> System -> Argon Config"
