@@ -38,8 +38,8 @@ echo -e "${GREEN}Updating packages...${NC}"
 opkg update
 
 # Сторонний feed PassWall
-wget -O passwall.pub https://master.dl.sourceforge.net/project/openwrt-passwall-build/passwall.pub
-opkg-key add passwall.pub
+wget -O /tmp/ipk.pub https://sourceforge.net/projects/openwrt-passwall-build/files/ipk.pub/download
+opkg-key add /tmp/ipk.pub
 
 > /etc/opkg/customfeeds.conf
 
