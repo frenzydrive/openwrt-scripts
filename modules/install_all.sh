@@ -387,18 +387,29 @@ configure_basic_system() {
 	/sbin/reload_config >/dev/null 2>&1 || true
 }
 
+configure_luci_language() {
+	log "Setting LuCI language to Russian..."
+
+	uci -q set luci.main.lang='ru'
+	uci -q commit luci
+}
+
 install_common_tools() {
 	pkg_update
 
 	if [ "$PKG_MGR" = "apk" ]; then
+		# OpenWrt 25.x
 		pkg_install_optional ca-bundle
 		pkg_install_optional unzip
 		pkg_install_optional luci-base
+		pkg_install_optional luci-i18n-base-ru
 	else
+		# OpenWrt 24.x
 		pkg_install_optional ca-bundle
 		pkg_install_optional wget-ssl
 		pkg_install_optional unzip
 		pkg_install_optional luci-base
+		pkg_install_optional luci-i18n-base-ru
 	fi
 }
 
@@ -855,6 +866,7 @@ main() {
 
 	configure_basic_system
 	install_common_tools
+	configure_luci_language
 
 	if [ "$INSTALL_PASSWALL" = "1" ]; then
 		install_passwall2_all
