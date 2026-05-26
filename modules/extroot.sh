@@ -28,7 +28,6 @@ OPENWRT_MAJOR=""
 PKG_MGR=""
 
 # Packages needed for extroot.
-# Keep this list focused on real extroot requirements.
 REQUIRED_PKGS="
 block-mount
 e2fsprogs
