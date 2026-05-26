@@ -310,8 +310,16 @@ pkg_install_local_required() {
 			;;
 		*.apk)
 			[ "$PKG_MGR" = "apk" ] || die "Cannot install .apk with $PKG_MGR: $file"
-			apk add --allow-untrusted "./$file" || die "Failed to install $file"
-			;;
+
+	        case "$file" in
+		    	/*)
+			    	apk add --allow-untrusted "$file" || die "Failed to install $file"
+			        ;;
+		        *)
+			        apk add --allow-untrusted "./$file" || die "Failed to install $file"
+			        ;;
+	        esac
+	        ;;
 		*)
 			die "Unsupported local package format: $file"
 			;;
@@ -338,11 +346,19 @@ pkg_install_local_optional() {
 			;;
 		*.apk)
 			[ "$PKG_MGR" = "apk" ] || {
-				warn "Skipping .apk on $PKG_MGR: $file"
-				return 1
-			}
-			apk add --allow-untrusted "./$file"
-			;;
+		    	warn "Skipping .apk on $PKG_MGR: $file"
+		        return 1
+	        }
+
+	        case "$file" in
+		    	/*)
+			    	apk add --allow-untrusted "$file"
+			        ;;
+		    *)
+			        apk add --allow-untrusted "./$file"
+			        ;;
+	       esac
+	       ;;
 		*)
 			warn "Unsupported local package format: $file"
 			return 1
