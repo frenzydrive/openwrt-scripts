@@ -376,7 +376,6 @@ install_common_tools() {
 
 	if [ "$PKG_MGR" = "apk" ]; then
 		pkg_install_optional ca-bundle
-		pkg_install_optional wget
 		pkg_install_optional unzip
 		pkg_install_optional luci-base
 	else
@@ -426,14 +425,17 @@ setup_passwall_feed_apk() {
 	safe_mkdir /etc/apk/repositories.d
 	safe_mkdir /etc/apk/keys
 
-	key="/tmp/passwall-apk.pub"
+	key="/etc/apk/keys/openwrt-passwall-build.pem"
 
-	if download "$PASSWALL_SF_BASE/apk.pub/download" "$key"; then
-		cp -f "$key" /etc/apk/keys/passwall-apk.pub
-		chmod 0644 /etc/apk/keys/passwall-apk.pub
+	if command_exists uclient-fetch; then
+		uclient-fetch -O "$key" "$PASSWALL_SF_BASE/apk.pub" || warn "Could not download apk.pub"
+	elif command_exists wget; then
+		wget -O "$key" "$PASSWALL_SF_BASE/apk.pub" || warn "Could not download apk.pub"
 	else
-		warn "Could not download apk.pub. Will use --allow-untrusted for apk add."
+		warn "No downloader found for apk.pub"
 	fi
+
+	[ -f "$key" ] && chmod 0644 "$key"
 
 	feed_file="/etc/apk/repositories.d/passwall.list"
 	backup_file_once "$feed_file"
