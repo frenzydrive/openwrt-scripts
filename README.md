@@ -90,6 +90,12 @@ OFF | Выключает Passwall2 и останавливает сервис
 
 Модули можно установить напрямую из GitHub.
 
+Пример: единый установочный скрипт
+
+```
+cd /tmp && wget -O install_all.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/install_all.sh && chmod +x install_all.shh && sh install_all.sh
+```
+
 Пример: Расширение внутренней памяти роутера на usb флешку
 
 ```
