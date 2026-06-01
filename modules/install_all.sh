@@ -32,15 +32,14 @@ RAW_REPO="https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main"
 ARGON_REPO="$RAW_REPO/assets/argon-config"
 PASSWALL_MOD_ZIP="$RAW_REPO/assets/passwall2/mod.zip"
 
-# Your existing repo assets for OpenWrt 24.x
+# Argon APK packages for OpenWrt 24.x
 ARGON_THEME_IPK="luci-theme-argon_2.4.3-r20250722_all.ipk"
 ARGON_CONFIG_IPK="luci-app-argon-config_0.9_all.ipk"
 ARGON_RU_LMO="argon-config.ru.lmo"
 
-# Argon APK for OpenWrt 25.x.
-# Source: official Argon GitHub release used by Radxa docs.
-ARGON_THEME_APK_URL="https://github.com/jerrykuku/luci-theme-argon/releases/download/v2.4.3/luci-theme-argon-2.4.3-r20250722.apk"
+# Argon APK packages for OpenWrt 25.x
 ARGON_THEME_APK_FILE="luci-theme-argon-2.4.3-r20250722.apk"
+ARGON_CONFIG_APK_FILE="luci-app-argon-config-1.0-r20230608.apk"
 
 # PassWall build repo
 PASSWALL_SF_BASE="https://master.dl.sourceforge.net/project/openwrt-passwall-build"
@@ -49,10 +48,7 @@ PASSWALL_SF_BASE="https://master.dl.sourceforge.net/project/openwrt-passwall-bui
 WAN_DNS_IPV4="1.1.1.1"
 WAN_DNS_IPV6="2001:4860:4860::8888"
 
-# Your old script used Moscow time.
-# Change here if needed, for example:
-# TIMEZONE_NAME="Europe/Riga"
-# TIMEZONE_VALUE="EET-2EEST,M3.5.0/3,M10.5.0/4"
+# Timezone
 TIMEZONE_NAME="Europe/Moscow"
 TIMEZONE_VALUE="MSK-3"
 
@@ -787,30 +783,32 @@ install_argon_opkg() {
 }
 
 install_argon_apk() {
-	log "Installing Argon via apk..."
+    log "Installing Argon via apk from repo assets..."
+    cd /tmp || die "Cannot cd /tmp"
 
-	cd /tmp || die "Cannot cd /tmp"
+    if ! pkg_is_installed luci-theme-argon; then
+        rm -f "/tmp/$ARGON_THEME_APK_FILE"
 
-	if ! pkg_is_installed luci-theme-argon; then
-		if download "$ARGON_THEME_APK_URL" "/tmp/$ARGON_THEME_APK_FILE"; then
-			pkg_install_local_required "/tmp/$ARGON_THEME_APK_FILE"
-		else
-			warn "Could not download Argon APK from GitHub release."
-			warn "Trying apk add luci-theme-argon from configured feeds..."
-			pkg_install_required luci-theme-argon
-		fi
-	else
-		log "Already installed: luci-theme-argon"
-	fi
+        download "$ARGON_REPO/$ARGON_THEME_APK_FILE" "/tmp/$ARGON_THEME_APK_FILE" \
+            || die "Failed to download $ARGON_THEME_APK_FILE from $ARGON_REPO"
 
-	# Argon Config for apk may not be available on all feeds/builds.
-	# Do not fail the whole installation because of it.
-	if ! pkg_is_installed luci-app-argon-config; then
-		pkg_install_optional luci-app-argon-config \
-			|| warn "Argon Config is unavailable for this OpenWrt/APK feed. Theme will still work."
-	else
-		log "Already installed: luci-app-argon-config"
-	fi
+        pkg_install_local_required "/tmp/$ARGON_THEME_APK_FILE"
+    else
+        log "Already installed: luci-theme-argon"
+    fi
+
+    if ! pkg_is_installed luci-app-argon-config; then
+        rm -f "/tmp/$ARGON_CONFIG_APK_FILE"
+
+        if download "$ARGON_REPO/$ARGON_CONFIG_APK_FILE" "/tmp/$ARGON_CONFIG_APK_FILE"; then
+            pkg_install_local_optional "/tmp/$ARGON_CONFIG_APK_FILE" \
+                || warn "Argon Config apk install failed"
+        else
+            warn "Failed to download $ARGON_CONFIG_APK_FILE from $ARGON_REPO"
+        fi
+    else
+        log "Already installed: luci-app-argon-config"
+    fi
 }
 
 set_luci_theme_argon() {
