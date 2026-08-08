@@ -123,7 +123,7 @@ cd /tmp && wget -O install_passwall2.sh https://raw.githubusercontent.com/frenzy
 Пример: обновление Passwall2
 
 ```
-cd /tmp && wget -O update_passwall2.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/update_passwall2.sh && chmod +x update_passwall2.sh && sh update_passwall2.sh
+cd /tmp && wget -O update_passwall2.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/update_passwall2_universal.sh && chmod +x update_passwall2.sh && sh update_passwall2.sh
 ```
 
 ---
