@@ -117,7 +117,7 @@ cd /tmp && wget -O install_vpn_switch.sh https://raw.githubusercontent.com/frenz
 Пример: установка Passwall2
 
 ```
-cd /tmp && wget -O install_passwall2.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/install_passwall2.sh && chmod +x install_passwall2.sh && sh install_passwall2.sh
+cd /tmp && wget -O install_passwall2.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/install_passwall2_universal.sh && chmod +x install_passwall2.sh && sh install_passwall2.sh
 ```
 
 Пример: обновление Passwall2
