@@ -93,7 +93,7 @@ OFF | Выключает Passwall2 и останавливает сервис
 Пример: Расширение внутренней памяти роутера на usb флешку
 
 ```
-cd /tmp && wget -O extroot.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/extroot.sh && chmod +x extroot.sh && sh extroot.sh
+cd /tmp && wget -O extroot.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/extroot_new.sh && chmod +x extroot.sh && sh extroot.sh
 ```
 
 Пример: единый установочный скрипт
