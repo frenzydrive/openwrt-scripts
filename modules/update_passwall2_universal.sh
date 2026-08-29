@@ -173,6 +173,31 @@ ensure_unzip() {
     fi
 }
 
+pre_update_compat_fix() {
+    [ -f /etc/config/passwall2 ] || return 0
+
+    changed=0
+
+    tcp_no_redir="$(uci -q get passwall2.@global_forwarding[0].tcp_no_redir_ports)"
+    udp_no_redir="$(uci -q get passwall2.@global_forwarding[0].udp_no_redir_ports)"
+
+    if [ "$tcp_no_redir" = "disable" ]; then
+        info 'Temporarily normalizing TCP no-redir ports for PassWall2 update...'
+        uci -q delete passwall2.@global_forwarding[0].tcp_no_redir_ports
+        changed=1
+    fi
+
+    if [ "$udp_no_redir" = "disable" ]; then
+        info 'Temporarily normalizing UDP no-redir ports for PassWall2 update...'
+        uci -q delete passwall2.@global_forwarding[0].udp_no_redir_ports
+        changed=1
+    fi
+
+    [ "$changed" = "1" ] && uci commit passwall2
+
+    return 0
+}
+
 install_or_update_passwall() {
     info 'Updating package lists...'
 
@@ -261,6 +286,8 @@ if ! is_passwall_installed; then
         exit 0
     fi
 fi
+
+pre_update_compat_fix
 
 install_or_update_passwall || {
     err 'Failed to install/update PassWall2.'
