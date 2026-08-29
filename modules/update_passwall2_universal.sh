@@ -219,8 +219,8 @@ apply_post_update_settings() {
 
     # Keep the same PassWall2 settings used by the original updater.
     uci set passwall2.@global_forwarding[0]=global_forwarding
-    uci set passwall2.@global_forwarding[0].tcp_no_redir_ports='disable'
-    uci set passwall2.@global_forwarding[0].udp_no_redir_ports='disable'
+    uci -q delete passwall2.@global_forwarding[0].tcp_no_redir_ports
+    uci -q delete passwall2.@global_forwarding[0].udp_no_redir_ports
     uci set passwall2.@global_forwarding[0].tcp_redir_ports='1:65535'
     uci set passwall2.@global_forwarding[0].udp_redir_ports='1:65535'
     uci set passwall2.@global[0].remote_dns='8.8.4.4'
