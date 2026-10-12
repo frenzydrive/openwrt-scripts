@@ -90,37 +90,47 @@ OFF | Выключает Passwall2 и останавливает сервис
 
 Модули можно установить напрямую из GitHub.
 
-Пример: Расширение внутренней памяти роутера на usb флешку
+Расширение внутренней памяти роутера на usb флешку
 
 ```
 cd /tmp && wget -O extroot.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/extroot_new.sh && chmod +x extroot.sh && sh extroot.sh
 ```
 
-Пример: единый установочный скрипт
+единый установочный скрипт
 
 ```
 cd /tmp && wget -O install_all.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/install_all.sh && chmod +x install_all.sh && sh install_all.sh
 ```
 
-Пример: установка темы Argon
+установка темы Argon
 
 ```
 cd /tmp && wget -O install_argon.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/install_argon.sh && chmod +x install_argon.sh && sh install_argon.sh
 ```
 
-Пример: установка поддержки бокового переключателя (только для Cudy TR3000)
+установка темы Proton2026
+```
+cd /tmp && wget -qO- https://raw.githubusercontent.com/ChesterGoodiny/luci-theme-proton2025/main/install.sh | sh
+```
+
+установка темы Proton2026 с виджетами
+```
+cd /tmp && wget -qO- https://raw.githubusercontent.com/ChesterGoodiny/luci-theme-proton2025/main/install.sh | WITH_DASHBOARD=1 sh
+```
+
+установка поддержки бокового переключателя (только для Cudy TR3000)
 
 ```
 cd /tmp && wget -O install_vpn_switch.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/install_vpn_switch.sh && chmod +x install_vpn_switch.sh && sh install_vpn_switch.sh
 ```
 
-Пример: установка Passwall2
+установка Passwall2
 
 ```
 cd /tmp && wget -O install_passwall2.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/install_passwall2_universal.sh && chmod +x install_passwall2.sh && sh install_passwall2.sh
 ```
 
-Пример: обновление Passwall2
+обновление Passwall2
 
 ```
 cd /tmp && wget -O update_passwall2.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/update_passwall2_universal.sh && chmod +x update_passwall2.sh && sh update_passwall2.sh
@@ -266,31 +276,41 @@ Each module performs one specific task.
 
 Modules can be installed directly from GitHub.
 
-Example: expanding the router's internal memory using a USB flash drive
+Expanding the router's internal memory using a USB flash drive
 
 ```
 cd /tmp && wget -O extroot.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/extroot.sh && chmod +x extroot.sh && sh extroot.sh
 ```
 
-Example: install Argon theme
+Install Argon theme
 
 ```
 cd /tmp && wget -O install_argon.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/install_argon.sh && chmod +x install_argon.sh && sh install_argon.sh
 ```
 
-Example: Setting up side switch support (Cudy TR3000 only)
+Install Proton2026 Theme only
+```
+cd /tmp && wget -qO- https://raw.githubusercontent.com/ChesterGoodiny/luci-theme-proton2025/main/install.sh | sh
+```
+
+Install Proton2026 Theme with dashboard widgets
+```
+cd /tmp && wget -qO- https://raw.githubusercontent.com/ChesterGoodiny/luci-theme-proton2025/main/install.sh | WITH_DASHBOARD=1 sh
+```
+
+Setting up side switch support (Cudy TR3000 only)
 
 ```
 cd /tmp && wget -O install_vpn_switch.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/install_vpn_switch.sh && chmod +x install_vpn_switch.sh && sh install_vpn_switch.sh
 ```
 
-Example: install Passwall2
+Install Passwall2
 
 ```
 cd /tmp && wget -O install_vpn_switch.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/install_passwall2.sh && chmod +x install_passwall2.sh && sh install_passwall2.sh
 ```
 
-Example: update Passwall2
+Update Passwall2
 
 ```
 cd /tmp && wget -O install_vpn_switch.sh https://raw.githubusercontent.com/frenzydrive/openwrt-scripts/main/modules/update_passwall2.sh && chmod +x update_passwall2.sh && sh update_passwall2.sh
